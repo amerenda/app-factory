@@ -1,0 +1,18 @@
+  # --- {{ app_name }} ---
+  - matrix:
+      generators:
+      - pullRequest:
+          github:
+            owner: amerenda
+            repo: k3s-dean-gitops
+            appSecretName: argocd-deploy-bot
+            labels:
+            - {{ label }}
+          requeueAfterSeconds: 30
+      - list:
+          elements:
+{%- for component in components %}
+          - app: {{ app_name }}-{{ component.name }}
+            path: apps/{{ app_name }}/{{ component.name }}-uat
+            namespace: {{ namespace }}
+{%- endfor %}

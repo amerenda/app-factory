@@ -1,0 +1,114 @@
+# Reference spec — documents the existing quiz app.
+# Do NOT run `make provision` against this; the database and secrets already exist.
+
+[app]
+name = "quiz"
+domain = "quiz.amer.dev"
+namespace = "quiz"
+
+[[components]]
+name = "backend"
+image = "amerenda/quiz:backend-latest"
+port = 8081
+replicas = 2
+health_path = "/health"
+ingress = false
+
+[components.resources.requests]
+cpu = "50m"
+memory = "64Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+[[components.env]]
+name = "DB_PASSWORD"
+secret_ref = { name = "postgres-credentials", key = "password" }
+
+[[components.env]]
+name = "DATABASE_URL"
+value = "postgres://quiz:$(DB_PASSWORD)@agent-kb.amer.dev:5432/quiz"
+
+[[components.env]]
+name = "GITHUB_CLIENT_ID"
+secret_ref = { name = "github-oauth", key = "client-id" }
+
+[[components.env]]
+name = "GITHUB_CLIENT_SECRET"
+secret_ref = { name = "github-oauth", key = "client-secret" }
+
+[[components.env]]
+name = "SESSION_SECRET"
+secret_ref = { name = "session-secret", key = "secret" }
+
+[[components.env]]
+name = "GITHUB_ALLOWED_USERS"
+value = "amerenda"
+
+[[components.env]]
+name = "APP_ORIGIN"
+value = "https://quiz.amer.dev"
+
+[[components]]
+name = "frontend"
+image = "amerenda/quiz:frontend-latest"
+port = 80
+replicas = 2
+health_path = "/"
+ingress = true
+
+[components.resources.requests]
+cpu = "50m"
+memory = "32Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+[[secrets]]
+bws_name = "quiz-postgres-password"
+k8s_secret = "postgres-credentials"
+k8s_key = "password"
+generate = true
+
+[[secrets]]
+bws_name = "quiz-github-client-id"
+k8s_secret = "github-oauth"
+k8s_key = "client-id"
+generate = false
+
+[[secrets]]
+bws_name = "quiz-github-client-secret"
+k8s_secret = "github-oauth"
+k8s_key = "client-secret"
+generate = false
+
+[[secrets]]
+bws_name = "quiz-session-secret"
+k8s_secret = "session-secret"
+k8s_key = "secret"
+generate = true
+
+[database]
+type = "postgres"
+name = "quiz"
+host = "agent-kb.amer.dev"
+extensions = ["pgcrypto"]
+password_secret = "quiz-postgres-password"
+
+[uat]
+enabled = true
+replicas = 1
+
+[uat.resources.requests]
+cpu = "25m"
+memory = "32Mi"
+
+[uat.resources.limits]
+cpu = "100m"
+memory = "64Mi"
+
+[cicd]
+repo = "amerenda/quiz"
+label = "deploy:quiz"

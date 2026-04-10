@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-{{ component.name }}
+  namespace: {{ namespace }}
+spec:
+  replicas: {{ component.replicas }}
+  selector:
+    matchLabels:
+      app: {{ app_name }}-{{ component.name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}-{{ component.name }}
+    spec:
+      containers:
+        - name: {{ component.name }}
+          image: {{ component.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ component.port }}
+{%- if component.env %}
+          env:
+{%- for e in component.env %}
+{%- if e.get("secret_ref") %}
+            - name: {{ e.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ e.secret_ref.name }}
+                  key: {{ e.secret_ref.key }}
+{%- else %}
+            - name: {{ e.name }}
+              value: "{{ e.value }}"
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+          readinessProbe:
+            httpGet:
+              path: {{ component.health_path }}
+              port: {{ component.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+{%- if component.health_path != "/" %}
+          livenessProbe:
+            httpGet:
+              path: {{ component.health_path }}
+              port: {{ component.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+{%- endif %}
+          resources:
+            requests:
+              cpu: {{ component.resources.requests.cpu }}
+              memory: {{ component.resources.requests.memory }}
+            limits:
+              cpu: {{ component.resources.limits.cpu }}
+              memory: {{ component.resources.limits.memory }}

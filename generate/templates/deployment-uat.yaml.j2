@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-{{ component.name }}-uat
+  namespace: {{ namespace }}
+spec:
+  replicas: {{ uat.replicas }}
+  selector:
+    matchLabels:
+      app: {{ app_name }}-{{ component.name }}-uat
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}-{{ component.name }}-uat
+    spec:
+      containers:
+        - name: {{ component.name }}
+          image: {{ component.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ component.port }}
+          env:
+{%- for e in component.env %}
+{%- if e.get("secret_ref") %}
+            - name: {{ e.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ e.secret_ref.name }}
+                  key: {{ e.secret_ref.key }}
+                  optional: true
+{%- else %}
+            - name: {{ e.name }}
+              value: "{{ e.value }}"
+{%- endif %}
+{%- endfor %}
+            - name: ENVIRONMENT
+              value: "uat"
+          readinessProbe:
+            httpGet:
+              path: {{ component.health_path }}
+              port: {{ component.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: {{ uat.resources.requests.cpu }}
+              memory: {{ uat.resources.requests.memory }}
+            limits:
+              cpu: {{ uat.resources.limits.cpu }}
+              memory: {{ uat.resources.limits.memory }}

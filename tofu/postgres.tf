@@ -1,10 +1,3 @@
-# Generate a random password for the app's database user.
-# The password is stored in tofu state (encrypted via backend) and pushed to BWS.
-resource "random_password" "db" {
-  length  = 40
-  special = false
-}
-
 resource "postgresql_role" "app" {
   name     = var.app_name
   password = random_password.db.result

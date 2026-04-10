@@ -4,7 +4,6 @@ Pipeline for deploying stateless apps to the k3s cluster. Creates secrets, datab
 
 ## Prerequisites
 
-- `bws` CLI ([Bitwarden Secrets Manager](https://bitwarden.com/help/secrets-manager-cli/))
 - `tofu` ([OpenTofu](https://opentofu.org/docs/intro/install/))
 - `python3` with `jinja2` (`pip install -r generate/requirements.txt`)
 - `gh` CLI (for creating template repos)
@@ -20,8 +19,10 @@ cp apps/quiz.toml apps/my-app.toml
 # Edit apps/my-app.toml with your app's config
 
 # 3. Export credentials
-export BWS_ACCESS_TOKEN="..."       # from BWS UI → Machine Accounts
-export SECRETS_API_TOKEN="..."      # secrets API bearer token
+export BWS_ACCESS_TOKEN="..."         # from BWS UI → Machine Accounts
+export AWS_ACCESS_KEY_ID="..."        # GCS HMAC access key (for tofu state backend)
+export AWS_SECRET_ACCESS_KEY="..."    # GCS HMAC secret key
+export AWS_S3_ENDPOINT="..."          # GCS S3-compat endpoint
 
 # 4. Run the pipeline
 make create-app APP=my-app GITOPS_DIR=../k3s-dean-gitops
@@ -67,7 +68,7 @@ Running `make create-app` produces:
 | Output | Location |
 |--------|----------|
 | PostgreSQL user + database | Mac Mini postgres (via OpenTofu) |
-| BWS secrets | Bitwarden Secrets Manager (via secrets API) |
+| BWS secrets | Bitwarden Secrets Manager (via OpenTofu BWS provider) |
 | Deployment + Service (prod) | `k3s-dean-gitops/apps/<app>/<component>/` |
 | Deployment + Service (UAT) | `k3s-dean-gitops/apps/<app>/<component>-uat/` |
 | ExternalSecret | `k3s-dean-gitops/apps/<app>/<component>/externalsecret.yaml` |

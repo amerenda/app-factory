@@ -16,22 +16,16 @@ variable "postgres_admin_user" {
   default     = "postgres"
 }
 
-variable "postgres_admin_password" {
-  description = "PostgreSQL admin password (fetched from BWS)"
+variable "postgres_admin_secret_id" {
+  description = "BWS secret UUID for the postgres admin password"
   type        = string
-  sensitive   = true
+  default     = "a280e465-8813-4b48-9972-b4210149cb60" # mini-postgres-password
 }
 
-variable "secrets_api_url" {
-  description = "Secrets API base URL"
+variable "bws_project_id" {
+  description = "BWS project UUID for new secrets"
   type        = string
-  default     = "http://10.100.20.18:8090"
-}
-
-variable "secrets_api_token" {
-  description = "Bearer token for secrets API"
-  type        = string
-  sensitive   = true
+  default     = "6353f589-39c0-45f2-9e9c-b36f00e0c282" # k3s project
 }
 
 variable "app_name" {
@@ -46,10 +40,10 @@ variable "app_db_extensions" {
 }
 
 variable "secrets" {
-  description = "Secrets to create via the secrets API"
+  description = "Additional secrets to create in BWS (session keys, etc.)"
   type = list(object({
-    bws_name  = string
-    generate  = bool
+    bws_name = string
+    generate = bool
   }))
   default = []
 }

@@ -1,13 +1,14 @@
 # App Factory — deploy stateless apps to k3s
 #
 # Prerequisites:
-#   - bws CLI (bitwarden secrets manager)
 #   - tofu (OpenTofu)
 #   - python3 with jinja2 (pip install -r generate/requirements.txt)
 #
 # Required env vars:
-#   BWS_ACCESS_TOKEN    — Bitwarden Secrets Manager access token
-#   SECRETS_API_TOKEN   — bearer token for the secrets API
+#   BWS_ACCESS_TOKEN    — Bitwarden Secrets Manager access token (used by tofu provider)
+#   AWS_ACCESS_KEY_ID   — GCS HMAC access key (for tofu S3-compat backend)
+#   AWS_SECRET_ACCESS_KEY — GCS HMAC secret key
+#   AWS_S3_ENDPOINT     — GCS S3-compat endpoint URL (e.g. https://storage.googleapis.com)
 #
 # Usage:
 #   make create-app APP=myapp GITOPS_DIR=../k3s-dean-gitops
@@ -18,16 +19,10 @@ SHELL := /bin/bash
 APP ?=
 GITOPS_DIR ?= ../k3s-dean-gitops
 
-# BWS secret names for infrastructure credentials
-BWS_POSTGRES_PW_SECRET := mini-postgres-password
-BWS_GCS_ACCESS_KEY     := k3s-dean-backups-access-key
-BWS_GCS_SECRET_KEY     := k3s-dean-backups-secret-key
-BWS_GCS_ENDPOINT       := k3s-dean-backups-endpoint
-
 # Derived
 SPEC := apps/$(APP).toml
 
-.PHONY: create-app validate provision generate commit destroy-app list-apps help
+.PHONY: create-app validate provision generate destroy-app list-apps help
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
@@ -44,26 +39,16 @@ validate: _check-app ## Validate the app spec
 	python3 generate/validate.py $(SPEC)
 
 provision: _check-app _check-env ## Provision secrets + database via OpenTofu
-	$(eval POSTGRES_PW := $(shell bws secret get $(BWS_POSTGRES_PW_SECRET) --access-token "$$BWS_ACCESS_TOKEN" -o json | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])"))
-	$(eval GCS_ACCESS := $(shell bws secret get $(BWS_GCS_ACCESS_KEY) --access-token "$$BWS_ACCESS_TOKEN" -o json | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])"))
-	$(eval GCS_SECRET := $(shell bws secret get $(BWS_GCS_SECRET_KEY) --access-token "$$BWS_ACCESS_TOKEN" -o json | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])"))
-	$(eval GCS_ENDPOINT := $(shell bws secret get $(BWS_GCS_ENDPOINT) --access-token "$$BWS_ACCESS_TOKEN" -o json | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])"))
-	$(eval APP_EXTENSIONS := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); print(','.join(spec.get('database',{}).get('extensions',[])))"))
+	$(eval APP_EXTENSIONS := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); exts=spec.get('database',{}).get('extensions',[]); print(' '.join(exts))"))
 	$(eval APP_SECRETS := $(shell python3 -c "\
 		import tomllib,json; \
 		spec=tomllib.load(open('$(SPEC)','rb')); \
 		secrets=[{'bws_name':s['bws_name'],'generate':s['generate']} for s in spec.get('secrets',[])]; \
-		print(json.dumps(secrets))" | sed "s/'/\"/g"))
-	cd tofu && tofu init \
-		-backend-config="access_key=$(GCS_ACCESS)" \
-		-backend-config="secret_key=$(GCS_SECRET)" \
-		-backend-config="endpoints={s3=\"$(GCS_ENDPOINT)\"}" \
-		-reconfigure
+		print(json.dumps(secrets))"))
+	cd tofu && tofu init -reconfigure
 	cd tofu && tofu apply \
-		-var="postgres_admin_password=$(POSTGRES_PW)" \
-		-var="secrets_api_token=$$SECRETS_API_TOKEN" \
 		-var="app_name=$(APP)" \
-		-var='app_db_extensions=$(if $(APP_EXTENSIONS),[$(shell echo '$(APP_EXTENSIONS)' | sed 's/,/","/g' | sed 's/^/"/;s/$$/"/')],[])' \
+		$(if $(APP_EXTENSIONS),$(foreach ext,$(APP_EXTENSIONS),-var="app_db_extensions=[\"$(ext)\"]")) \
 		-var='secrets=$(APP_SECRETS)' \
 		-auto-approve
 
@@ -94,6 +79,6 @@ _check-env:
 ifndef BWS_ACCESS_TOKEN
 	$(error BWS_ACCESS_TOKEN is required)
 endif
-ifndef SECRETS_API_TOKEN
-	$(error SECRETS_API_TOKEN is required)
+ifndef AWS_ACCESS_KEY_ID
+	$(error AWS_ACCESS_KEY_ID is required (GCS HMAC key for tofu backend))
 endif

@@ -33,6 +33,12 @@ variable "app_name" {
   type        = string
 }
 
+variable "uat_enabled" {
+  description = "Create a separate UAT database and role"
+  type        = bool
+  default     = true
+}
+
 variable "app_db_extensions" {
   description = "PostgreSQL extensions to enable"
   type        = list(string)

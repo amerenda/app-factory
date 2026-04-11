@@ -40,6 +40,7 @@ validate: _check-app ## Validate the app spec
 
 provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 	$(eval APP_EXTENSIONS := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); exts=spec.get('database',{}).get('extensions',[]); print(' '.join(exts))"))
+	$(eval UAT_ENABLED := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); print(str(spec.get('uat',{}).get('enabled',False)).lower())"))
 	$(eval APP_SECRETS := $(shell python3 -c "\
 		import tomllib,json; \
 		spec=tomllib.load(open('$(SPEC)','rb')); \
@@ -48,6 +49,7 @@ provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 	cd tofu && tofu init -reconfigure
 	cd tofu && tofu apply \
 		-var="app_name=$(APP)" \
+		-var="uat_enabled=$(UAT_ENABLED)" \
 		$(if $(APP_EXTENSIONS),$(foreach ext,$(APP_EXTENSIONS),-var="app_db_extensions=[\"$(ext)\"]")) \
 		-var='secrets=$(APP_SECRETS)' \
 		-auto-approve

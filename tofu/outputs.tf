@@ -18,6 +18,16 @@ output "db_password_bws_id" {
   value       = bitwarden-secrets_secret.db_password.id
 }
 
+output "uat_database_name" {
+  description = "PostgreSQL UAT database name"
+  value       = var.uat_enabled ? postgresql_database.app_uat[0].name : null
+}
+
+output "uat_db_password_bws_id" {
+  description = "BWS secret ID for the UAT database password"
+  value       = var.uat_enabled ? bitwarden-secrets_secret.db_password_uat[0].id : null
+}
+
 output "generated_secret_ids" {
   description = "BWS secret IDs for auto-generated secrets"
   value       = { for k, v in bitwarden-secrets_secret.generated : k => v.id }

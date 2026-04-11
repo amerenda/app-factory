@@ -43,6 +43,59 @@ def write_file(path: Path, content: str):
     print(f"  wrote {path}")
 
 
+def build_uat_env(component_env: list, database: dict | None, app_name: str) -> list:
+    """Build UAT env list with database URL pointing at UAT database."""
+    if not database:
+        return list(component_env)
+
+    uat_db_name = f"{app_name}_uat"
+    uat_secret_name = "uat-postgres-credentials"
+    prod_secret_name = database.get("password_secret", "").replace(
+        f"{app_name}-postgres-password", ""
+    )
+
+    uat_env = []
+    for e in component_env:
+        ref = e.get("secret_ref")
+        if ref and ref["name"] == "postgres-credentials":
+            # Swap to UAT credentials secret
+            uat_env.append({
+                "name": e["name"],
+                "secret_ref": {"name": uat_secret_name, "key": ref["key"]},
+            })
+        elif e.get("value") and f"@{database['host']}" in str(e.get("value", "")):
+            # Rewrite DATABASE_URL to point at UAT database
+            val = e["value"]
+            val = val.replace(
+                f"/{app_name}\"", f"/{uat_db_name}\""
+            ).replace(
+                f"/{app_name}", f"/{uat_db_name}"
+            ).replace(
+                f"//{app_name}:", f"//{uat_db_name}:"
+            ).replace(
+                "$(DB_PASSWORD)", "$(DB_PASSWORD)"
+            )
+            uat_env.append({"name": e["name"], "value": val})
+        else:
+            uat_env.append(e)
+    return uat_env
+
+
+def build_uat_secrets(secrets: list, app_name: str) -> list:
+    """Build UAT secrets list — only the database credential, mapped to UAT secret name."""
+    uat_secrets = []
+    for s in secrets:
+        if s["k8s_secret"] == "postgres-credentials":
+            uat_secrets.append({
+                "bws_name": f"{app_name}-uat-postgres-password",
+                "k8s_secret": "uat-postgres-credentials",
+                "k8s_key": s["k8s_key"],
+                "generate": True,
+            })
+        # Other secrets (session, oauth) are shared between UAT and prod
+    return uat_secrets
+
+
 def generate(spec: dict, gitops_dir: Path):
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
@@ -59,6 +112,7 @@ def generate(spec: dict, gitops_dir: Path):
     uat = spec.get("uat", {})
     cicd = spec.get("cicd", {})
     components = spec.get("components", [])
+    database = spec.get("database")
 
     apps_dir = gitops_dir / "apps" / app_name
 
@@ -114,12 +168,16 @@ def generate(spec: dict, gitops_dir: Path):
         if uat.get("enabled", False):
             uat_dir = apps_dir / f"{comp_name}-uat"
 
+            # Build UAT env with database URL pointing at UAT database
+            uat_env = build_uat_env(comp_env, database, app_name)
+
             tmpl = env.get_template("deployment-uat.yaml.j2")
             content = tmpl.render(
                 app_name=app_name,
                 namespace=namespace,
                 component=component,
                 uat=uat,
+                uat_env=uat_env,
             )
             write_file(uat_dir / "deployment.yaml", content)
 
@@ -131,6 +189,18 @@ def generate(spec: dict, gitops_dir: Path):
                 port=component["port"],
             )
             write_file(uat_dir / "service.yaml", content)
+
+            # UAT ExternalSecret for UAT database credentials
+            if database:
+                uat_secrets = build_uat_secrets(secrets, app_name)
+                uat_grouped = build_secret_groups(uat_secrets, uat_env)
+                if uat_grouped:
+                    tmpl = env.get_template("externalsecret.yaml.j2")
+                    content = tmpl.render(
+                        namespace=namespace,
+                        grouped_secrets=uat_grouped,
+                    )
+                    write_file(uat_dir / "externalsecret.yaml", content)
 
     # --- ARC runner ---
     if cicd.get("repo"):

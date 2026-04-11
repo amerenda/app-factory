@@ -25,7 +25,7 @@ spec:
           ports:
             - containerPort: {{ component.port }}
           env:
-{%- for e in component.env %}
+{%- for e in uat_env %}
 {%- if e.get("secret_ref") %}
             - name: {{ e.name }}
               valueFrom:

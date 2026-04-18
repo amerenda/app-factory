@@ -6,7 +6,7 @@
 #
 # Required env vars:
 #   BWS_ACCESS_TOKEN    — Bitwarden Secrets Manager access token (read/write)
-#   GCS auth: uses application default credentials (gcloud auth application-default login)
+#   GOOGLE_CREDENTIALS  — Path to GCS service account key JSON
 #
 # Usage:
 #   make create-app APP=myapp GITOPS_DIR=../k3s-dean-gitops
@@ -44,6 +44,10 @@ provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 		spec=tomllib.load(open('$(SPEC)','rb')); \
 		secrets=[{'bws_name':s['bws_name'],'generate':s['generate']} for s in spec.get('secrets',[])]; \
 		print(json.dumps(secrets))"))
+	export BW_ACCESS_TOKEN=$${BWS_ACCESS_TOKEN}
+	export BW_API_URL=https://api.bitwarden.com
+	export BW_IDENTITY_API_URL=https://identity.bitwarden.com
+	export BW_ORGANIZATION_ID=a9b83b36-d37e-4532-88a4-b36f00df7f3d
 	cd tofu
 	tofu init -reconfigure
 	tofu apply \

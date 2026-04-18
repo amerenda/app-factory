@@ -25,7 +25,7 @@ terraform {
 }
 
 # BWS provider — reads/writes secrets in Bitwarden Secrets Manager.
-# Authenticates via BWS_ACCESS_TOKEN env var.
+# Set env vars: BW_ACCESS_TOKEN, BW_API_URL, BW_IDENTITY_API_URL, BW_ORGANIZATION_ID
 provider "bitwarden-secrets" {}
 
 # Read the postgres admin password from BWS so we don't need bws CLI.

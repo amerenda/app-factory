@@ -44,11 +44,12 @@ provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 		spec=tomllib.load(open('$(SPEC)','rb')); \
 		secrets=[{'bws_name':s['bws_name'],'generate':s['generate']} for s in spec.get('secrets',[])]; \
 		print(json.dumps(secrets))"))
-	$(eval export AWS_ACCESS_KEY_ID := $(shell bws secret get 7fc1f26c-7145-4b61-b6a9-b43001602096 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])"))
-	$(eval export AWS_SECRET_ACCESS_KEY := $(shell bws secret get 2228286b-9f08-4b39-9691-b43001603859 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])"))
-	$(eval export AWS_S3_ENDPOINT := https://storage.googleapis.com)
-	cd tofu && tofu init -reconfigure
-	cd tofu && tofu apply \
+	export AWS_ACCESS_KEY_ID=$$(bws secret get 7fc1f26c-7145-4b61-b6a9-b43001602096 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
+	export AWS_SECRET_ACCESS_KEY=$$(bws secret get 2228286b-9f08-4b39-9691-b43001603859 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
+	export AWS_S3_ENDPOINT=https://storage.googleapis.com
+	cd tofu
+	tofu init -reconfigure
+	tofu apply \
 		-var="app_name=$(APP)" \
 		-var="uat_enabled=$(UAT_ENABLED)" \
 		$(if $(APP_EXTENSIONS),$(foreach ext,$(APP_EXTENSIONS),-var="app_db_extensions=[\"$(ext)\"]")) \

@@ -16,19 +16,11 @@ terraform {
     }
   }
 
-  # GCS via S3-compatible HMAC auth.
-  # Env vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_ENDPOINT
-  # are set by the Makefile from BWS secrets.
-  backend "s3" {
-    bucket                      = "amerenda-tofu-state"
-    key                         = "dean/app-factory/terraform.tfstate"
-    region                      = "us-east-1"
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_requesting_account_id  = true
-    skip_region_validation      = true
-    skip_s3_checksum            = true
-    use_path_style              = true
+  # GCS backend — authenticates via GOOGLE_CREDENTIALS env var or
+  # application default credentials (gcloud auth application-default login).
+  backend "gcs" {
+    bucket = "amerenda-tofu-state"
+    prefix = "dean/app-factory"
   }
 }
 

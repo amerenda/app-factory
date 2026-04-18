@@ -5,8 +5,8 @@
 #   - python3 with jinja2 (pip install -r generate/requirements.txt)
 #
 # Required env vars:
-#   BWS_ACCESS_TOKEN    — Bitwarden Secrets Manager access token
-#                         GCS HMAC credentials are fetched from BWS automatically.
+#   BWS_ACCESS_TOKEN    — Bitwarden Secrets Manager access token (read/write)
+#   GCS auth: uses application default credentials (gcloud auth application-default login)
 #
 # Usage:
 #   make create-app APP=myapp GITOPS_DIR=../k3s-dean-gitops
@@ -44,9 +44,6 @@ provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 		spec=tomllib.load(open('$(SPEC)','rb')); \
 		secrets=[{'bws_name':s['bws_name'],'generate':s['generate']} for s in spec.get('secrets',[])]; \
 		print(json.dumps(secrets))"))
-	export AWS_ACCESS_KEY_ID=$$(bws secret get 7fc1f26c-7145-4b61-b6a9-b43001602096 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
-	export AWS_SECRET_ACCESS_KEY=$$(bws secret get 2228286b-9f08-4b39-9691-b43001603859 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
-	export AWS_S3_ENDPOINT=https://storage.googleapis.com
 	cd tofu
 	tofu init -reconfigure
 	tofu apply \

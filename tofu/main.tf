@@ -20,8 +20,8 @@ terraform {
   # Set env vars: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_ENDPOINT
   # (or pass via -backend-config at init time)
   backend "s3" {
-    bucket                      = "amerenda-db-backups"
-    key                         = "tofu/app-factory/terraform.tfstate"
+    bucket                      = "amerenda-tofu-state"
+    key                         = "dean/app-factory/terraform.tfstate"
     region                      = "auto"
     skip_credentials_validation = true
     skip_metadata_api_check     = true

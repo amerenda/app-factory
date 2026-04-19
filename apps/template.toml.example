@@ -1,0 +1,90 @@
+# Example app spec — copy this to apps/<name>.toml and fill in.
+# Do NOT run `make provision` against this file directly.
+#
+# Usage:
+#   cp apps/template.toml.example apps/myapp.toml
+#   # Edit myapp.toml with your app's config
+#   make create-app APP=myapp
+
+[app]
+name = "myapp"
+domain = "myapp.amer.dev"
+namespace = "myapp"
+
+[[components]]
+name = "backend"
+image = "amerenda/myapp:backend-latest"
+port = 8080
+replicas = 2
+health_path = "/health"
+ingress = false
+
+[components.resources.requests]
+cpu = "50m"
+memory = "64Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+# Environment variables — plain values or secret references
+[[components.env]]
+name = "DB_PASSWORD"
+secret_ref = { name = "postgres-credentials", key = "password" }
+
+[[components.env]]
+name = "DATABASE_URL"
+value = "postgres://myapp:$(DB_PASSWORD)@agent-kb.amer.dev:5432/myapp"
+
+[[components]]
+name = "frontend"
+image = "amerenda/myapp:frontend-latest"
+port = 80
+replicas = 2
+health_path = "/"
+ingress = true
+
+[components.resources.requests]
+cpu = "50m"
+memory = "32Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+# Secrets — bws_name is the BWS key, k8s_secret/k8s_key map to ExternalSecret output.
+# generate = true creates a random password in BWS; false means you create it manually.
+[[secrets]]
+bws_name = "myapp-postgres-password"
+k8s_secret = "postgres-credentials"
+k8s_key = "password"
+generate = true
+
+[[secrets]]
+bws_name = "myapp-session-secret"
+k8s_secret = "session-secret"
+k8s_key = "secret"
+generate = true
+
+[database]
+type = "postgres"
+name = "myapp"
+host = "agent-kb.amer.dev"
+extensions = ["pgcrypto"]
+password_secret = "myapp-postgres-password"
+
+[uat]
+enabled = true
+replicas = 1
+
+[uat.resources.requests]
+cpu = "25m"
+memory = "32Mi"
+
+[uat.resources.limits]
+cpu = "100m"
+memory = "64Mi"
+
+[cicd]
+repo = "amerenda/myapp"
+label = "deploy:myapp"

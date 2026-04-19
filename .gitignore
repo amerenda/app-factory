@@ -2,6 +2,7 @@
 .tofu/
 *.tfstate
 *.tfstate.backup
+.bw-provider-state
 *.tfvars
 .terraform.lock.hcl
 __pycache__/

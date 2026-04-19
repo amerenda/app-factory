@@ -1,6 +1,3 @@
-# Reference spec — documents the existing quiz app.
-# Do NOT run `make provision` against this; the database and secrets already exist.
-
 [app]
 name = "quiz"
 domain = "quiz.amer.dev"

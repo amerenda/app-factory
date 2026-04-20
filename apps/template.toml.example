@@ -9,6 +9,7 @@
 [app]
 name = "myapp"
 domain = "myapp.amer.dev"
+# extra_domains = ["alias.amer.dev"]  # optional additional ingress hostnames
 namespace = "myapp"
 
 [[components]]

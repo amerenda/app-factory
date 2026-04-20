@@ -1,6 +1,7 @@
 [app]
 name = "sazed"
 domain = "reports.amer.dev"
+extra_domains = ["sazed.amer.dev"]
 namespace = "sazed"
 
 [[components]]

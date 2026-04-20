@@ -7,16 +7,19 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/hostname: {{ domain }}
+    external-dns.alpha.kubernetes.io/hostname: {{ all_domains | join(',') }}
     external-dns.alpha.kubernetes.io/ttl: "300"
 spec:
   ingressClassName: infra-traefik
   tls:
     - hosts:
-        - {{ domain }}
+{%- for d in all_domains %}
+        - {{ d }}
+{%- endfor %}
       secretName: {{ app_name }}-amer-dev-tls
   rules:
-    - host: {{ domain }}
+{%- for d in all_domains %}
+    - host: {{ d }}
       http:
         paths:
           - path: /
@@ -26,3 +29,4 @@ spec:
                 name: {{ service_name }}
                 port:
                   number: {{ port }}
+{%- endfor %}

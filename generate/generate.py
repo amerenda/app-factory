@@ -154,11 +154,12 @@ def generate(spec: dict, gitops_dir: Path):
 
         # Ingress (only for the component marked with ingress=true)
         if component.get("ingress"):
+            all_domains = [domain] + app.get("extra_domains", [])
             tmpl = env.get_template("ingress.yaml.j2")
             content = tmpl.render(
                 app_name=app_name,
                 namespace=namespace,
-                domain=domain,
+                all_domains=all_domains,
                 service_name=f"{app_name}-{comp_name}",
                 port=component["port"],
             )

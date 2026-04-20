@@ -1,0 +1,57 @@
+[app]
+name = "sazed"
+domain = "reports.amer.dev"
+namespace = "sazed"
+
+[[components]]
+name = "backend"
+image = "amerenda/sazed:backend-latest"
+port = 8000
+replicas = 2
+health_path = "/health"
+ingress = true
+
+[components.resources.requests]
+cpu = "50m"
+memory = "128Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "256Mi"
+
+[[components.env]]
+name = "DB_PASSWORD"
+secret_ref = { name = "postgres-credentials", key = "password" }
+
+[[components.env]]
+name = "DATABASE_URL"
+value = "postgres://sazed:$(DB_PASSWORD)@agent-kb.amer.dev:5432/sazed"
+
+[[secrets]]
+bws_name = "sazed-postgres-password"
+k8s_secret = "postgres-credentials"
+k8s_key = "password"
+generate = true
+
+[database]
+type = "postgres"
+name = "sazed"
+host = "agent-kb.amer.dev"
+extensions = []
+password_secret = "sazed-postgres-password"
+
+[uat]
+enabled = true
+replicas = 1
+
+[uat.resources.requests]
+cpu = "25m"
+memory = "64Mi"
+
+[uat.resources.limits]
+cpu = "100m"
+memory = "128Mi"
+
+[cicd]
+repo = "amerenda/sazed"
+label = "deploy:sazed"

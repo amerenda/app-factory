@@ -20,10 +20,13 @@ GITOPS_DIR ?= ../k3s-dean-gitops
 # Derived
 SPEC := apps/$(APP).toml
 
-.PHONY: create-app validate provision generate destroy-app list-apps help
+.PHONY: create-app validate provision provision-database generate destroy-app list-apps help
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
+
+provision-database: _check-app _check-env validate provision ## DB + BWS only (use with provision_database_only specs)
+	@echo "=== Database provisioned for $(APP) ==="
 
 create-app: _check-app validate provision generate ## Full pipeline: validate → provision → generate manifests
 	@echo ""

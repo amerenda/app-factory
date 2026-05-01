@@ -49,6 +49,7 @@ git push
 | `make create-app APP=x` | Full pipeline: validate → provision → generate |
 | `make validate APP=x` | Validate the TOML spec |
 | `make provision APP=x` | Create secrets + database via OpenTofu |
+| `make provision-database APP=x` | Same as `provision` (for `provision_database_only` specs; no manifest step in your workflow) |
 | `make generate APP=x` | Generate k8s manifests to gitops repo |
 | `make destroy-app APP=x` | Remove manifests (does not drop database) |
 | `make list-apps` | List all app specs |
@@ -64,8 +65,11 @@ See `apps/template.toml.example` for a starter template, or `apps/quiz.toml` for
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `name` | yes | — | App name, kebab-case |
-| `domain` | yes | — | Domain (e.g. `my-app.amer.dev`) |
+| `domain` | yes | — | Domain (e.g. `my-app.amer.dev`); omit if `provision_database_only` |
 | `namespace` | no | same as `name` | k8s namespace |
+| `provision_database_only` | no | `false` | If `true`, only Postgres + BWS DB password are provisioned; `make generate` skips manifest output. Omit `domain` / `[[components]]` / `[cicd]`. Use `make provision-database APP=…`. |
+
+For **database-only** apps (e.g. services deployed outside this pipeline), add `provision_database_only = true` and a `[database]` block, then run **`make provision-database APP=myapp`** (same OpenTofu apply as `make provision`, without running `generate`).
 
 ### `[[components]]` (required, one or more)
 

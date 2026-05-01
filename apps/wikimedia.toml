@@ -1,0 +1,23 @@
+# Database + BWS password only — no k8s manifests (Homelab Wiki uses compose on Mac Mini).
+# Run: make provision APP=wikimedia
+# Do not run make create-app / make generate for this spec (generate is a no-op).
+
+[app]
+name = "wikimedia"
+provision_database_only = true
+
+[[secrets]]
+bws_name = "wikimedia-postgres-password"
+k8s_secret = "postgres-credentials"
+k8s_key = "password"
+generate = true
+
+[database]
+type = "postgres"
+name = "wikimedia"
+host = "agent-kb.amer.dev"
+extensions = []
+password_secret = "wikimedia-postgres-password"
+
+[uat]
+enabled = false

@@ -106,6 +106,10 @@ def generate(spec: dict, gitops_dir: Path):
 
     app = spec["app"]
     app_name = app["name"]
+    if app.get("provision_database_only"):
+        print("  skipped manifest generation (app.provision_database_only)")
+        return
+
     namespace = app.get("namespace", app_name)
     domain = app["domain"]
     secrets = spec.get("secrets", [])

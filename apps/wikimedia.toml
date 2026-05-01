@@ -6,11 +6,13 @@
 name = "wikimedia"
 provision_database_only = true
 
+# generate MUST be false: OpenTofu already writes this key via bitwarden-secrets_secret.db_password.
+# generate = true would create a second BWS secret with the same key and break External Secrets.
 [[secrets]]
 bws_name = "wikimedia-postgres-password"
 k8s_secret = "postgres-credentials"
 k8s_key = "password"
-generate = true
+generate = false
 
 [database]
 type = "postgres"

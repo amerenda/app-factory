@@ -58,7 +58,7 @@ git push
 
 ## App Spec Format
 
-See `apps/template.toml.example` for a starter template, or `apps/quiz.toml` for a complete production example.
+See `apps/template.toml.example` for a starter template. Committed examples: `apps/quiz.toml` (full app), `apps/wikimedia.toml`, `apps/sazed.toml`.
 
 ### `[app]` (required)
 

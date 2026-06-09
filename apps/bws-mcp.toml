@@ -1,0 +1,104 @@
+[app]
+name = "bws-mcp"
+domain = "bws-mcp.amer.dev"
+namespace = "bws-mcp"
+
+# Three deployments — one per permission tier.
+# Each component gets its own BWS service account token (manually created in BWS UI).
+
+[[components]]
+name = "admin"
+image = "amerenda/bws-mcp:latest"
+port = 8000
+replicas = 1
+health_path = "/health"
+ingress = false
+
+[components.resources.requests]
+cpu = "50m"
+memory = "64Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+[[components.env]]
+name = "BWS_TIER"
+value = "admin"
+
+[[components.env]]
+name = "BWS_ACCESS_TOKEN"
+secret_ref = { name = "bws-mcp-admin-secret", key = "token" }
+
+[[components]]
+name = "write"
+image = "amerenda/bws-mcp:latest"
+port = 8001
+replicas = 1
+health_path = "/health"
+ingress = false
+
+[components.resources.requests]
+cpu = "50m"
+memory = "64Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+[[components.env]]
+name = "BWS_TIER"
+value = "write"
+
+[[components.env]]
+name = "BWS_ACCESS_TOKEN"
+secret_ref = { name = "bws-mcp-write-secret", key = "token" }
+
+[[components]]
+name = "read"
+image = "amerenda/bws-mcp:latest"
+port = 8002
+replicas = 1
+health_path = "/health"
+ingress = false
+
+[components.resources.requests]
+cpu = "50m"
+memory = "64Mi"
+
+[components.resources.limits]
+cpu = "200m"
+memory = "128Mi"
+
+[[components.env]]
+name = "BWS_TIER"
+value = "read"
+
+[[components.env]]
+name = "BWS_ACCESS_TOKEN"
+secret_ref = { name = "bws-mcp-read-secret", key = "token" }
+
+[[secrets]]
+bws_name = "bws-mcp-admin-token"
+k8s_secret = "bws-mcp-admin-secret"
+k8s_key = "token"
+generate = false
+
+[[secrets]]
+bws_name = "bws-mcp-write-token"
+k8s_secret = "bws-mcp-write-secret"
+k8s_key = "token"
+generate = false
+
+[[secrets]]
+bws_name = "bws-mcp-read-token"
+k8s_secret = "bws-mcp-read-secret"
+k8s_key = "token"
+generate = false
+
+[uat]
+enabled = false
+
+[cicd]
+repo = "amerenda/bws-mcp"
+label = "deploy:bws-mcp"

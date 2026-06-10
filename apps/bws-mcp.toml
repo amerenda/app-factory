@@ -4,7 +4,8 @@ domain = "bws-mcp.amer.dev"
 namespace = "bws-mcp"
 
 # Three deployments — one per permission tier.
-# Each component gets its own BWS service account token (manually created in BWS UI).
+# All use the same underlying BWS token (infra-mcp-bws-token).
+# Permission enforcement is in the MCP server code via BWS_TIER env var.
 
 [[components]]
 name = "admin"
@@ -28,7 +29,7 @@ value = "admin"
 
 [[components.env]]
 name = "BWS_ACCESS_TOKEN"
-secret_ref = { name = "bws-mcp-admin-secret", key = "token" }
+secret_ref = { name = "bws-mcp-token", key = "token" }
 
 [[components]]
 name = "write"
@@ -52,7 +53,7 @@ value = "write"
 
 [[components.env]]
 name = "BWS_ACCESS_TOKEN"
-secret_ref = { name = "bws-mcp-write-secret", key = "token" }
+secret_ref = { name = "bws-mcp-token", key = "token" }
 
 [[components]]
 name = "read"
@@ -76,23 +77,11 @@ value = "read"
 
 [[components.env]]
 name = "BWS_ACCESS_TOKEN"
-secret_ref = { name = "bws-mcp-read-secret", key = "token" }
+secret_ref = { name = "bws-mcp-token", key = "token" }
 
 [[secrets]]
-bws_name = "bws-mcp-admin-token"
-k8s_secret = "bws-mcp-admin-secret"
-k8s_key = "token"
-generate = false
-
-[[secrets]]
-bws_name = "bws-mcp-write-token"
-k8s_secret = "bws-mcp-write-secret"
-k8s_key = "token"
-generate = false
-
-[[secrets]]
-bws_name = "bws-mcp-read-token"
-k8s_secret = "bws-mcp-read-secret"
+bws_name = "infra-mcp-bws-token"
+k8s_secret = "bws-mcp-token"
 k8s_key = "token"
 generate = false
 

@@ -1,0 +1,33 @@
+[app]
+name = "litellm"
+domain = "litellm.amer.dev"
+namespace = "litellm"
+
+[[components]]
+name = "server"
+image = "ghcr.io/berriai/litellm:main-stable"
+port = 4000
+replicas = 1
+health_path = "/health"
+ingress = true
+
+[components.resources.requests]
+cpu = "100m"
+memory = "256Mi"
+
+[components.resources.limits]
+cpu = "500m"
+memory = "512Mi"
+
+[[components.env]]
+name = "LITELLM_MASTER_KEY"
+secret_ref = { name = "litellm-secrets", key = "master-key" }
+
+[[secrets]]
+bws_name = "litellm-master-key"
+k8s_secret = "litellm-secrets"
+k8s_key = "master-key"
+generate = true
+
+[uat]
+enabled = false

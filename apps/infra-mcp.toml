@@ -24,10 +24,6 @@ name = "BWS_ACCESS_TOKEN"
 secret_ref = { name = "infra-mcp-secrets", key = "bws-access-token" }
 
 [[components.env]]
-name = "BWS_SERVICE_ACCOUNT_TOKEN"
-secret_ref = { name = "infra-mcp-secrets", key = "bws-access-token" }
-
-[[components.env]]
 name = "CODER_APP_ID"
 secret_ref = { name = "infra-mcp-secrets", key = "coder-app-id" }
 

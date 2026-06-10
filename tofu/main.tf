@@ -16,11 +16,20 @@ terraform {
     }
   }
 
-  # Kubernetes backend — state stored as a k8s Secret in the infra-mcp namespace.
-  # No external credentials needed; uses the pod's service account.
-  backend "kubernetes" {
-    secret_suffix = "app-factory"
-    namespace     = "infra-mcp"
+  # GCS backend via S3-compatible API, authenticated with HMAC keys.
+  # Credentials come from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars.
+  backend "s3" {
+    bucket = "amerenda-tofu-state"
+    key    = "dean/app-factory/terraform.tfstate"
+    endpoints = {
+      s3 = "https://storage.googleapis.com"
+    }
+    region = "auto"
+
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    force_path_style            = true
   }
 }
 

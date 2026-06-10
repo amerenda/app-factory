@@ -84,6 +84,7 @@ bws_name = "infra-mcp-bws-token"
 k8s_secret = "bws-mcp-token"
 k8s_key = "token"
 generate = false
+shared = true
 
 [uat]
 enabled = false

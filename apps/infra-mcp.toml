@@ -50,18 +50,21 @@ bws_name = "github-amerenda-coder-app-id"
 k8s_secret = "infra-mcp-secrets"
 k8s_key = "coder-app-id"
 generate = false
+shared = true
 
 [[secrets]]
 bws_name = "github-amerenda-coder-installation-id"
 k8s_secret = "infra-mcp-secrets"
 k8s_key = "coder-installation-id"
 generate = false
+shared = true
 
 [[secrets]]
 bws_name = "github-amerenda-coder-private-key"
 k8s_secret = "infra-mcp-secrets"
 k8s_key = "coder-private-key"
 generate = false
+shared = true
 
 [uat]
 enabled = false

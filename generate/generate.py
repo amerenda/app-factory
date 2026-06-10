@@ -217,6 +217,9 @@ def generate(spec: dict, gitops_dir: Path):
         )
         write_file(runner_dir / "values.yaml", content)
 
+        es_tmpl = env.get_template("arc-runner-externalsecret.yaml.j2")
+        write_file(runner_dir / "externalsecret.yaml", es_tmpl.render())
+
     # --- ArgoCD entries (append to root-app.yaml) ---
     root_app = gitops_dir / "root-app.yaml"
     argocd_tmpl = env.get_template("argocd-app.yaml.j2")

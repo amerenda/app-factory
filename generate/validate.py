@@ -104,8 +104,8 @@ def validate(spec: dict) -> list[str]:
             errors.append(f"secrets[{i}].bws_name is required")
         elif bws in bws_names:
             errors.append(f"Duplicate bws_name: {bws}")
-        elif not bws.startswith(f"{name}-"):
-            errors.append(f"secrets[{i}].bws_name '{bws}' should start with '{name}-'")
+        elif not bws.startswith(f"{name}-") and not s.get("shared", False):
+            errors.append(f"secrets[{i}].bws_name '{bws}' should start with '{name}-' (or set shared=true for cross-app secrets)")
         bws_names.add(bws)
 
         if not s.get("k8s_secret"):

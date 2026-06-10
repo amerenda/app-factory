@@ -1,0 +1,75 @@
+[app]
+name = "infra-mcp"
+domain = "infra-mcp.amer.dev"
+namespace = "infra-mcp"
+
+[[components]]
+name = "server"
+image = "amerenda/infra-mcp:latest"
+port = 8000
+replicas = 1
+health_path = "/health"
+ingress = true
+
+[components.resources.requests]
+cpu = "100m"
+memory = "256Mi"
+
+[components.resources.limits]
+cpu = "500m"
+memory = "512Mi"
+
+[[components.env]]
+name = "BWS_ACCESS_TOKEN"
+secret_ref = { name = "infra-mcp-secrets", key = "bws-access-token" }
+
+[[components.env]]
+name = "BWS_SERVICE_ACCOUNT_TOKEN"
+secret_ref = { name = "infra-mcp-secrets", key = "bws-access-token" }
+
+[[components.env]]
+name = "CODER_APP_ID"
+secret_ref = { name = "infra-mcp-secrets", key = "coder-app-id" }
+
+[[components.env]]
+name = "CODER_INSTALLATION_ID"
+secret_ref = { name = "infra-mcp-secrets", key = "coder-installation-id" }
+
+[[components.env]]
+name = "CODER_APP_PRIVATE_KEY"
+secret_ref = { name = "infra-mcp-secrets", key = "coder-private-key" }
+
+[[components.env]]
+name = "CLONE_REPOS"
+value = "true"
+
+[[secrets]]
+bws_name = "infra-mcp-bws-token"
+k8s_secret = "infra-mcp-secrets"
+k8s_key = "bws-access-token"
+generate = false
+
+[[secrets]]
+bws_name = "github-amerenda-coder-app-id"
+k8s_secret = "infra-mcp-secrets"
+k8s_key = "coder-app-id"
+generate = false
+
+[[secrets]]
+bws_name = "github-amerenda-coder-installation-id"
+k8s_secret = "infra-mcp-secrets"
+k8s_key = "coder-installation-id"
+generate = false
+
+[[secrets]]
+bws_name = "github-amerenda-coder-private-key"
+k8s_secret = "infra-mcp-secrets"
+k8s_key = "coder-private-key"
+generate = false
+
+[uat]
+enabled = false
+
+[cicd]
+repo = "amerenda/infra-mcp"
+label = "deploy:infra-mcp"

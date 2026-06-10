@@ -64,8 +64,9 @@ def validate(spec: dict) -> list[str]:
             comp_names.add(cn)
 
             image = comp.get("image", "")
-            if not image.startswith("amerenda/"):
-                errors.append(f"components[{i}].image must start with 'amerenda/'")
+            has_cicd_repo = bool((spec.get("cicd") or {}).get("repo"))
+            if not image.startswith("amerenda/") and has_cicd_repo:
+                errors.append(f"components[{i}].image must start with 'amerenda/' (or omit [cicd].repo to allow external images)")
 
             port = comp.get("port", 0)
             if not (1 <= port <= 65535):

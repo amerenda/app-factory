@@ -16,11 +16,20 @@ terraform {
     }
   }
 
-  # GCS backend — authenticates via GOOGLE_CREDENTIALS env var or
-  # application default credentials (gcloud auth application-default login).
-  backend "gcs" {
+  # GCS backend via S3-compatible API, authenticated with HMAC keys.
+  # Credentials come from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars.
+  backend "s3" {
     bucket = "amerenda-tofu-state"
-    prefix = "dean/app-factory"
+    key    = "dean/app-factory/terraform.tfstate"
+    endpoints = {
+      s3 = "https://storage.googleapis.com"
+    }
+    region = "auto"
+
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    force_path_style            = true
   }
 }
 

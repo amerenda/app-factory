@@ -42,11 +42,7 @@ validate: _check-app ## Validate the app spec
 provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 	$(eval APP_EXTENSIONS := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); exts=spec.get('database',{}).get('extensions',[]); print(' '.join(exts))"))
 	$(eval UAT_ENABLED := $(shell python3 -c "import tomllib; spec=tomllib.load(open('$(SPEC)','rb')); print(str(spec.get('uat',{}).get('enabled',False)).lower())"))
-	$(eval APP_SECRETS := $(shell python3 -c "\
-		import tomllib,json; \
-		spec=tomllib.load(open('$(SPEC)','rb')); \
-		secrets=[{'bws_name':s['bws_name'],'generate':s['generate']} for s in spec.get('secrets',[])]; \
-		print(json.dumps(secrets))"))
+	$(eval APP_SECRETS := $(shell python3 generate/extract_secrets.py $(SPEC)))
 	export BW_ACCESS_TOKEN=$${BWS_ACCESS_TOKEN}
 	export BW_API_URL=https://api.bitwarden.com
 	export BW_IDENTITY_API_URL=https://identity.bitwarden.com

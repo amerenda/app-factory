@@ -16,21 +16,13 @@ terraform {
     }
   }
 
-  # GCS backend via S3-compatible API, authenticated with HMAC keys.
-  # Credentials come from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars.
-  backend "s3" {
-    bucket = "amerenda-tofu-state"
-    key    = "dean/app-factory/terraform.tfstate"
-    endpoints = {
-      s3 = "https://storage.googleapis.com"
-    }
-    region = "us-central1"
-
-    skip_credentials_validation  = true
-    skip_metadata_api_check      = true
-    skip_region_validation       = true
-    skip_requesting_account_id   = true
-    use_path_style               = true
+  # Kubernetes backend — state stored as a k8s Secret in the infra-mcp namespace.
+  # Uses the pod's service account; RBAC grant is in k3s-dean-gitops apps/infra-mcp/server/rbac.yaml.
+  # GCS HMAC keys don't work: AWS SDK Go v2 signs amz-sdk-invocation-id/amz-sdk-request headers
+  # that GCS's S3-compatible API rejects as SignatureDoesNotMatch.
+  backend "kubernetes" {
+    secret_suffix = "app-factory"
+    namespace     = "infra-mcp"
   }
 }
 

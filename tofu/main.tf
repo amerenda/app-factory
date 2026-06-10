@@ -16,11 +16,11 @@ terraform {
     }
   }
 
-  # GCS backend — authenticates via GOOGLE_CREDENTIALS env var or
-  # application default credentials (gcloud auth application-default login).
-  backend "gcs" {
-    bucket = "amerenda-tofu-state"
-    prefix = "dean/app-factory"
+  # Kubernetes backend — state stored as a k8s Secret in the infra-mcp namespace.
+  # No external credentials needed; uses the pod's service account.
+  backend "kubernetes" {
+    secret_suffix = "app-factory"
+    namespace     = "infra-mcp"
   }
 }
 

@@ -3,12 +3,8 @@ name = "bws-mcp"
 domain = "bws-mcp.amer.dev"
 namespace = "bws-mcp"
 
-# Three deployments — one per permission tier.
-# All use the same underlying BWS token (infra-mcp-bws-token).
-# Permission enforcement is in the MCP server code via BWS_TIER env var.
-
 [[components]]
-name = "admin"
+name = "server"
 image = "amerenda/bws-mcp:latest"
 port = 8000
 replicas = 1
@@ -22,58 +18,6 @@ memory = "64Mi"
 [components.resources.limits]
 cpu = "200m"
 memory = "128Mi"
-
-[[components.env]]
-name = "BWS_TIER"
-value = "admin"
-
-[[components.env]]
-name = "BWS_ACCESS_TOKEN"
-secret_ref = { name = "bws-mcp-token", key = "token" }
-
-[[components]]
-name = "write"
-image = "amerenda/bws-mcp:latest"
-port = 8001
-replicas = 1
-health_path = "/health"
-ingress = false
-
-[components.resources.requests]
-cpu = "50m"
-memory = "64Mi"
-
-[components.resources.limits]
-cpu = "200m"
-memory = "128Mi"
-
-[[components.env]]
-name = "BWS_TIER"
-value = "write"
-
-[[components.env]]
-name = "BWS_ACCESS_TOKEN"
-secret_ref = { name = "bws-mcp-token", key = "token" }
-
-[[components]]
-name = "read"
-image = "amerenda/bws-mcp:latest"
-port = 8002
-replicas = 1
-health_path = "/health"
-ingress = false
-
-[components.resources.requests]
-cpu = "50m"
-memory = "64Mi"
-
-[components.resources.limits]
-cpu = "200m"
-memory = "128Mi"
-
-[[components.env]]
-name = "BWS_TIER"
-value = "read"
 
 [[components.env]]
 name = "BWS_ACCESS_TOKEN"
@@ -90,5 +34,5 @@ shared = true
 enabled = false
 
 [cicd]
-repo = "amerenda/bws-mcp"
+repo = "amerenda/dean-mcp"
 label = "deploy:bws-mcp"

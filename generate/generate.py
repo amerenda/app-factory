@@ -216,9 +216,9 @@ def generate(spec: dict, gitops_dir: Path):
             cicd_repo=cicd["repo"],
         )
         write_file(runner_dir / "values.yaml", content)
-
-        es_tmpl = env.get_template("arc-runner-externalsecret.yaml.j2")
-        write_file(runner_dir / "externalsecret.yaml", es_tmpl.render())
+        # controller-manager and runner-ci-credentials ExternalSecrets are shared
+        # across the arc-runners namespace (created by the infra-arc-runners base app).
+        # Do not generate per-runner ExternalSecrets.
 
     # --- ArgoCD entries (append to root-app.yaml) ---
     root_app = gitops_dir / "root-app.yaml"

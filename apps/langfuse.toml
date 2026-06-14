@@ -1,0 +1,76 @@
+[app]
+name = "langfuse"
+domain = "langfuse.amer.dev"
+namespace = "langfuse"
+
+[[components]]
+name = "server"
+image = "langfuse/langfuse:latest"
+port = 3000
+replicas = 1
+health_path = "/api/public/health"
+ingress = true
+
+[components.resources.requests]
+cpu = "200m"
+memory = "512Mi"
+
+[components.resources.limits]
+cpu = "1000m"
+memory = "1Gi"
+
+[[components.env]]
+name = "PG_CRED"
+secret_ref = { name = "langfuse-secrets", key = "password" }
+
+[[components.env]]
+name = "DATABASE_URL"
+value = "postgresql://langfuse:$(PG_CRED)@10.100.20.18:5432/langfuse"
+
+[[components.env]]
+name = "NEXTAUTH_URL"
+value = "https://langfuse.amer.dev"
+
+[[components.env]]
+name = "NEXTAUTH_SECRET"
+secret_ref = { name = "langfuse-secrets", key = "nextauth-secret" }
+
+[[components.env]]
+name = "SALT"
+secret_ref = { name = "langfuse-secrets", key = "salt" }
+
+[[components.env]]
+name = "LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES"
+value = "true"
+
+[[components.env]]
+name = "TELEMETRY_ENABLED"
+value = "false"
+
+[[secrets]]
+bws_name = "langfuse-postgres-password"
+k8s_secret = "langfuse-secrets"
+k8s_key = "password"
+generate = true
+
+[[secrets]]
+bws_name = "langfuse-nextauth-secret"
+k8s_secret = "langfuse-secrets"
+k8s_key = "nextauth-secret"
+generate = true
+
+[[secrets]]
+bws_name = "langfuse-salt"
+k8s_secret = "langfuse-secrets"
+k8s_key = "salt"
+generate = true
+
+[database]
+type = "postgres"
+name = "langfuse"
+host = "10.100.20.18"
+extensions = []
+password_secret = "langfuse-postgres-password"
+
+[uat]
+enabled = false

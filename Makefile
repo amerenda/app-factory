@@ -48,7 +48,7 @@ provision: _check-app _check-env ## Provision secrets + database via OpenTofu
 	export BW_IDENTITY_API_URL=https://identity.bitwarden.com
 	export BW_ORGANIZATION_ID=a9b83b36-d37e-4532-88a4-b36f00df7f3d
 	cd tofu
-	tofu init -reconfigure
+	tofu init -reconfigure -backend-config="secret_suffix=$(APP)"
 	tofu apply \
 		-var="app_name=$(APP)" \
 		-var="uat_enabled=$(UAT_ENABLED)" \

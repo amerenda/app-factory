@@ -18,6 +18,8 @@ terraform {
 
   # Kubernetes backend — state stored as a k8s Secret in the infra-mcp namespace.
   # Uses the pod's service account; RBAC grant is in k3s-dean-gitops apps/infra-mcp/server/rbac.yaml.
+  # The secret_suffix is overridden per-app at init time: tofu init -backend-config="secret_suffix=<app>"
+  # This creates isolated state per app (tfstate-default-<app>) so apps never affect each other.
   # GCS HMAC keys don't work: AWS SDK Go v2 signs amz-sdk-invocation-id/amz-sdk-request headers
   # that GCS's S3-compatible API rejects as SignatureDoesNotMatch.
   backend "kubernetes" {
